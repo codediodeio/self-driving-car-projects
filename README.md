@@ -10,6 +10,6 @@ Basic Lane Line Detection
 
 Traffic Sign Classifier
 
-## Project 2
+## Project 3
 
 Behavioral Cloning
