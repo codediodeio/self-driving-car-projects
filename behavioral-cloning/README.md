@@ -17,24 +17,24 @@ The model starts with a BatchNormalization layer that sets the mean activation t
 
 Four convolutional layers are used for feature extraction, each with a 3x3 kernel size. Each convolutional layer is followed by max pooling with 2x2 strides. The convolutional layers are flattened and run through two fully connected layers. A 0.25 dropout layer was added after the final ReLU activation, meaning 25% of the input units have a chance of being dropped to prevent overfitting. The output layer uses a linear activation to make steering angle predictions as a continuous value ranging from -1.0 to 1.0
 
-Layer             (Batch, Rows, Cols, Channels)
-====================================================================================================
-(BatchNormalize)  (None, 120, 320, 3)  
-(Convolution2D)   (None, 118, 318, 3)    
-(MaxPooling2D)    (None, 59, 159, 3)    
-Convolution2D)    (None, 57, 157, 9)         
-(MaxPooling2D)    (None, 28, 78, 9)          
-(Convolution2D)   (None, 26, 76, 18)           
-(MaxPooling2D)    (None, 13, 38, 18)        
-(Convolution2D)   (None, 11, 36, 32)          
-(MaxPooling2D)    (None, 5, 18, 32)       
-(Flatten)         (None, 2880)       
-(Dense)           (None, 80)           
+### Layer (Batch, Rows, Cols, Channels)
+BatchNormalize  (None, 120, 320, 3)  
+Convolution2D   (None, 118, 318, 3)    
+MaxPooling2D    (None, 59, 159, 3)    
+Convolution2D    (None, 57, 157, 9)         
+MaxPooling2D    (None, 28, 78, 9)          
+Convolution2D   (None, 26, 76, 18)           
+MaxPooling2D    (None, 13, 38, 18)        
+Convolution2D   (None, 11, 36, 32)          
+MaxPooling2D   (None, 5, 18, 32)
 
-(Dense)           (None, 15)              
-(Dropout)         (None, 15)             
-(Dense)           (None, 1)              
-====================================================================================================
+Flatten         (None, 2880)       
+Dense           (None, 80)           
+
+Dense           (None, 15)              
+Dropout         (None, 15)
+Dense           (None, 1)
+
 Total params: 238979
 
 
