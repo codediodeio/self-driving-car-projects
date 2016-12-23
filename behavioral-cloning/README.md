@@ -4,7 +4,7 @@ A deep learning model for predicting steering angles using raw image frames from
 
 # Data Collection and Processing
 
-Data was collected by driving 2 laps on the track without veering outside of the lines, followed by shorter recovery segments to simulate what the car should do when it heads off track. Input data consisted of shuffled image frames at a size of 160x320x3 pixels. The final model was trained on 1937 samples, and validated on 485 samples - an 80/20 split.
+Data was collected by driving 2 laps on the track without veering outside of the lines, followed by shorter recovery segments to simulate what the car should do when it heads off track. Input data consisted of shuffled image frames at a size of 120x320x3 pixels. The upper 40 y-axis pixes were cropped off, as they only added extra noise to the data. The final model was trained on 3141 samples, with 20% used for validation.  
 
 ![training image](https://storage.googleapis.com/kaggle-data/center_2016_12_10_13_38_36_460.jpg)
 
@@ -13,24 +13,42 @@ Data was collected by driving 2 laps on the track without veering outside of the
 
 The model was loosely based on Nvidia's [End to End Learning for Self-Driving Cars](https://arxiv.org/pdf/1604.07316v1.pdf) paper.
 
-Four convolutional layers are used for feature extraction, each with a 3x3 kernel size. Each convolutuonal layer is followed by max pooling with 2x2 strides. The convolutional layers are flattened and run through two fully connected layers. A 0.25 dropout layer was added after the final ReLU activation, meaning 25% of the input units have a chance of being dropped to prevent overfitting. The output layer uses a linear activation to make steering angle predictions as a continuous value ranging from -1.0 to 1.0
+The model starts with a BatchNormalization layer that sets the mean activation to 0 and the standard deviation to 1. This step ensures that pixel values each batch of images are standardized scaled.  
 
-- Input:    (160, 320, 3)
-- Conv 3x3: (160, 320, 3)
-- Max Pool: (80, 160, 3)
-- Conv 3x3: (80, 160, 24)
-- Max Pool: (40, 80, 24)
-- Conv 3x3: (40, 80, 36)
-- Max Pool: (20, 40, 36)
-- Conv 3x3: (20, 40, 48)
-- Max Pool: (10, 20, 48)
-- Flatten:  (9600)
-- Dense:    (80)
-- Dense:    (16)
-- Dropout:  (0.25)
-- Output:   (1)            
+Four convolutional layers are used for feature extraction, each with a 3x3 kernel size. Each convolutional layer is followed by max pooling with 2x2 strides. The convolutional layers are flattened and run through two fully connected layers. A 0.25 dropout layer was added after the final ReLU activation, meaning 25% of the input units have a chance of being dropped to prevent overfitting. The output layer uses a linear activation to make steering angle predictions as a continuous value ranging from -1.0 to 1.0
 
-Total Params: 793561
+Layer (type)                     Output Shape          Param #     Connected to                     
+====================================================================================================
+batchnormalization_1 (BatchNormal(None, 120, 320, 3)   240         batchnormalization_input_1
+____________________________________________________________________________________________________
+convolution2d_1 (Convolution2D)  (None, 118, 318, 3)   84          batchnormalization_1   
+____________________________________________________________________________________________________
+maxpooling2d_1 (MaxPooling2D)    (None, 59, 159, 3)    0           convolution2d_1      
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 57, 157, 9)    252         maxpooling2d_1         
+____________________________________________________________________________________________________
+maxpooling2d_2 (MaxPooling2D)    (None, 28, 78, 9)     0           convolution2d_2          
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 26, 76, 18)    1476        maxpooling2d_2          
+____________________________________________________________________________________________________
+maxpooling2d_3 (MaxPooling2D)    (None, 13, 38, 18)    0           convolution2d_3         
+____________________________________________________________________________________________________
+convolution2d_4 (Convolution2D)  (None, 11, 36, 32)    5216        maxpooling2d_3            
+____________________________________________________________________________________________________
+maxpooling2d_4 (MaxPooling2D)    (None, 5, 18, 32)     0           convolution2d_4           
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 2880)          0           maxpooling2d_4            
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 80)            230480      flatten_1               
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 15)            1215        dense_1                
+____________________________________________________________________________________________________
+dropout_1 (Dropout)              (None, 15)            0           dense_2              
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 1)             16          dropout_1                 
+====================================================================================================
+Total params: 238979
+
 
 # Hyperparameters
 

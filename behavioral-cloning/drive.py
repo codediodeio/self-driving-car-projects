@@ -33,7 +33,11 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
-    transformed_image_array = image_array[None, :, :, :]
+
+    # transformed_image_array = image_array[None, :, :, :]
+    transformed_image_array =  image_array[None, 40:160, :, :]
+    # transformed_image_array =  image_array[None, :, :, :1]
+
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     prediction = model.predict(transformed_image_array, batch_size=1)
     steering_angle = float(prediction)
@@ -68,6 +72,9 @@ if __name__ == '__main__':
     model.compile("adam", "mse")
     weights_file = args.model.replace('json', 'h5')
     model.load_weights(weights_file)
+
+    # model.load_weights('new_model.h5')
+
 
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)

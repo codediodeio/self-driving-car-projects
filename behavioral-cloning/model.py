@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
 from keras.models import Sequential
-from keras.layers import Input, Dropout, Flatten, Convolution2D, MaxPooling2D, ZeroPadding2D, Dense, Activation
+from keras.layers import Input, Dropout, Flatten, Convolution2D, MaxPooling2D, ZeroPadding2D, Dense, Activation, BatchNormalization
 from keras.optimizers import RMSprop
 from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping
 from keras import backend as K
@@ -24,10 +24,33 @@ def img_id(path):
     return path.split('/IMG/')[1]
 
 def read_image(path):
+    """Read image and reverse channels"""
     img = cv2.imread(path, cv2.IMREAD_COLOR)
     return img[:,:,::-1]
 
+def fit_gen(data, batch_size):
+    """Python generator to read/process data on the fly"""
+    while 1:
+        ## Initilize empty batch data
+        x = np.ndarray((batch_size, ROWS, COLS, CHANNELS), dtype=np.uint8)
+        y = np.zeros(batch_size)
+        i=0
+        for line in data.iterrows():
+            ## process (x, y) line in batch
+            path = line[1].center.split('/IMG/')[1]
+            x[i] = read_image(DIR+path)
+            y[i] = line[1].angle
+            i+=1
+            if i == batch_size:
+                ## When batch size is reached, yield data and reset variables
+                i=0
+                yield (x, y)
+                x = np.ndarray((batch_size, ROWS, COLS, CHANNELS), dtype=np.uint8)
+                y = np.zeros(batch_size)
+
 def get_model():
+    """Define hyperparameters and compile model"""
+
     lr = 0.0001
     weight_init='glorot_normal'
     opt = RMSprop(lr)
@@ -35,21 +58,23 @@ def get_model():
 
     model = Sequential()
 
-    model.add(Convolution2D(3, 3, 3, init=weight_init, border_mode='same', activation='relu', input_shape=(ROWS, COLS, CHANNELS)))
+    model.add(BatchNormalization(mode=2, axis=1, input_shape=(ROWS, COLS, CHANNELS)))
+    model.add(Convolution2D(3, 3, 3, init=weight_init, border_mode='valid', activation='relu', input_shape=(ROWS, COLS, CHANNELS)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Convolution2D(24, 3, 3, init=weight_init, border_mode='same', activation='relu'))
+    model.add(Convolution2D(9, 3, 3, init=weight_init, border_mode='valid', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Convolution2D(36, 3, 3, init=weight_init, border_mode='same', activation='relu'))
+    model.add(Convolution2D(18, 3, 3, init=weight_init, border_mode='valid', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Convolution2D(48, 3, 3, init=weight_init, border_mode='same',  activation='relu'))
+    model.add(Convolution2D(32, 3, 3, init=weight_init, border_mode='valid',  activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
     model.add(Dense(80, activation='relu', init=weight_init))
-    model.add(Dense(16, activation='relu', init=weight_init))
+
+    model.add(Dense(15, activation='relu', init=weight_init))
 
     model.add(Dropout(0.25))
     model.add(Dense(1, init=weight_init, activation='linear'))
@@ -76,6 +101,8 @@ if __name__ == '__main__':
 
     image_paths = data.center.apply(img_id).values.tolist()
 
+
+    ## Load all data (optional for validation only)
     X_all = np.ndarray((n_samples, ROWS, COLS, CHANNELS), dtype=np.uint8)
 
     for i, path in enumerate(image_paths):
@@ -92,8 +119,14 @@ if __name__ == '__main__':
     print("Training Model --------------")
 
     model = get_model()
-    model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-              validation_data=(X_test, y_test), verbose=1, shuffle=True, callbacks=[save_weights, early_stopping])
+
+    model.fit_generator(fit_gen(data, batch_size),
+        samples_per_epoch=data.shape[0], nb_epoch=nb_epoch,
+        validation_data=(X_test, y_test), callbacks=[save_weights, early_stopping])
+
+    ## uncomment when using all data in memory
+    # model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+    #           validation_data=(X_test, y_test), verbose=1, shuffle=True, callbacks=[save_weights, early_stopping])
 
 
     preds = model.predict(X_test, verbose=1)
