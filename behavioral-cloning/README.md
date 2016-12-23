@@ -17,35 +17,23 @@ The model starts with a BatchNormalization layer that sets the mean activation t
 
 Four convolutional layers are used for feature extraction, each with a 3x3 kernel size. Each convolutional layer is followed by max pooling with 2x2 strides. The convolutional layers are flattened and run through two fully connected layers. A 0.25 dropout layer was added after the final ReLU activation, meaning 25% of the input units have a chance of being dropped to prevent overfitting. The output layer uses a linear activation to make steering angle predictions as a continuous value ranging from -1.0 to 1.0
 
-Layer (type)                     Output Shape          Param #     Connected to                     
+Layer             (Batch, Rows, Cols, Channels)
 ====================================================================================================
-batchnormalization_1 (BatchNormal(None, 120, 320, 3)   240         batchnormalization_input_1
-____________________________________________________________________________________________________
-convolution2d_1 (Convolution2D)  (None, 118, 318, 3)   84          batchnormalization_1   
-____________________________________________________________________________________________________
-maxpooling2d_1 (MaxPooling2D)    (None, 59, 159, 3)    0           convolution2d_1      
-____________________________________________________________________________________________________
-convolution2d_2 (Convolution2D)  (None, 57, 157, 9)    252         maxpooling2d_1         
-____________________________________________________________________________________________________
-maxpooling2d_2 (MaxPooling2D)    (None, 28, 78, 9)     0           convolution2d_2          
-____________________________________________________________________________________________________
-convolution2d_3 (Convolution2D)  (None, 26, 76, 18)    1476        maxpooling2d_2          
-____________________________________________________________________________________________________
-maxpooling2d_3 (MaxPooling2D)    (None, 13, 38, 18)    0           convolution2d_3         
-____________________________________________________________________________________________________
-convolution2d_4 (Convolution2D)  (None, 11, 36, 32)    5216        maxpooling2d_3            
-____________________________________________________________________________________________________
-maxpooling2d_4 (MaxPooling2D)    (None, 5, 18, 32)     0           convolution2d_4           
-____________________________________________________________________________________________________
-flatten_1 (Flatten)              (None, 2880)          0           maxpooling2d_4            
-____________________________________________________________________________________________________
-dense_1 (Dense)                  (None, 80)            230480      flatten_1               
-____________________________________________________________________________________________________
-dense_2 (Dense)                  (None, 15)            1215        dense_1                
-____________________________________________________________________________________________________
-dropout_1 (Dropout)              (None, 15)            0           dense_2              
-____________________________________________________________________________________________________
-dense_3 (Dense)                  (None, 1)             16          dropout_1                 
+(BatchNormalize)  (None, 120, 320, 3)  
+(Convolution2D)   (None, 118, 318, 3)    
+(MaxPooling2D)    (None, 59, 159, 3)    
+Convolution2D)    (None, 57, 157, 9)         
+(MaxPooling2D)    (None, 28, 78, 9)          
+(Convolution2D)   (None, 26, 76, 18)           
+(MaxPooling2D)    (None, 13, 38, 18)        
+(Convolution2D)   (None, 11, 36, 32)          
+(MaxPooling2D)    (None, 5, 18, 32)       
+(Flatten)         (None, 2880)       
+(Dense)           (None, 80)           
+
+(Dense)           (None, 15)              
+(Dropout)         (None, 15)             
+(Dense)           (None, 1)              
 ====================================================================================================
 Total params: 238979
 

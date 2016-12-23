@@ -12,7 +12,7 @@ from keras.optimizers import RMSprop
 from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping
 from keras import backend as K
 
-ROWS = 160
+ROWS = 120
 COLS = 320
 CHANNELS = 3
 DIR = 'data/IMG/'
@@ -26,6 +26,7 @@ def img_id(path):
 def read_image(path):
     """Read image and reverse channels"""
     img = cv2.imread(path, cv2.IMREAD_COLOR)
+    img = img[40:160, 0:320] # Cropping top 40 y axis pixels
     return img[:,:,::-1]
 
 def fit_gen(data, batch_size):
@@ -85,7 +86,7 @@ def get_model():
 
 # Callbacks
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto')
-save_weights = ModelCheckpoint('model2.h5', monitor='val_loss', save_best_only=True)
+save_weights = ModelCheckpoint('model.h5', monitor='val_loss', save_best_only=True)
 
 
 if __name__ == '__main__':
